@@ -10,37 +10,33 @@ import java.io.IOException;
 import java.util.List;
 
 @Service
-public class AddressService {
+public class AddressServiceImpl implements AddreesService {
 
     private final AddressRepository addressRepository;
+    private final GeoCode geoCode;
 
-    public AddressService(AddressRepository addressRepository) {
+    public AddressServiceImpl(AddressRepository addressRepository, GeoCode geoCode) {
         this.addressRepository = addressRepository;
+        this.geoCode = geoCode;
     }
 
-    public Address save(Address toSave){
+    @Override
+    public Address create(Address toSave){
         if(toSave.getLatitude() == null || toSave.getLongitude() == null){
-            var geo = new GeoCode();
-            try {
-                var location = geo.getGeolocationFromAddress(toSave);
-                toSave.setLongitude(location.get("lng"));
-                toSave.setLatitude(location.get("lat"));
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            geoCode.findAndGeolocationFromAddress(toSave);
         }
         return addressRepository.save(toSave);
     }
 
-    public Address update(Address toUpdate){
-        if(!addressRepository.existsById(toUpdate.getId())){
+    @Override
+    public Address update(Long id, Address toUpdate){
+        if(!addressRepository.existsById(id)){
             throw new NoResultException(String.format("Addres no find with code %d",toUpdate.getId()));
         }
-        return this.save(toUpdate);
+        return this.create(toUpdate);
     }
 
+    @Override
     public void deleteById(Long id){
 
         if(!addressRepository.existsById(id)){
@@ -49,11 +45,13 @@ public class AddressService {
         addressRepository.deleteById(id);
     }
 
-    public List<Address> getAll(){
+    @Override
+    public List<Address> findAll(){
         return addressRepository.findAll();
     }
 
-    public Address getById(Long id){
+    @Override
+    public Address findById(Long id){
         return addressRepository.findById(id)
                 .orElseThrow( () -> new NoResultException(String.format("Addres no find with code %d", id)));
     }

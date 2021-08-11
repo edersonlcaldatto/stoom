@@ -8,11 +8,13 @@ import org.springframework.stereotype.Component;
 
 import javax.persistence.NoResultException;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,31 +22,48 @@ import java.util.Map;
 @Component
 public class GeoCode {
 
-    private static final String URL_MAPS = "https://maps.googleapis.com/maps/api/geocode/json?address=";
-    private static final String API_KEY = "AIzaSyCj0cY2yEvVfYhAaTz3-P2MW-YRKmhz5Uw";
+    @Value("${google.maps.baseUrl}")
+    private String URL_MAPS;
 
-    private String GeocodeSync(String query) throws IOException, InterruptedException {
+    @Value("${google.maps.api-key}")
+    private String API_KEY;
 
-        HttpClient httpClient = HttpClient.newHttpClient();
+    public void findAndGeolocationFromAddress(Address address) {
 
-        String encodedQuery = URLEncoder.encode(query,"UTF-8");
-        String requestUri = URL_MAPS + encodedQuery + "CA&key=" + API_KEY;
+        StringBuilder addressBuilder = new StringBuilder();
+        addressBuilder.append(address.getStreetName())
+                .append(" ")
+                .append(address.getNumber())
+                .append(" ")
+                .append(address.getNeighborhood())
+                .append(" ")
+                .append(address.getCity())
+                .append(" ")
+                .append(address.getState())
+                .append(" ")
+                .append(address.getZipCode())
+                .append(" ")
+                .append(address.getCountry());
 
-        HttpRequest request = HttpRequest.newBuilder().GET().uri(URI.create(requestUri))
+
+        String encodedQuery = URLEncoder.encode(addressBuilder.toString(), StandardCharsets.UTF_8);
+        StringBuilder requestUri = new StringBuilder();
+        requestUri.append(URL_MAPS)
+                .append(encodedQuery)
+                .append(String.format("CA&key=%s", API_KEY));
+
+        HttpRequest request = HttpRequest.newBuilder().GET().uri(URI.create(requestUri.toString()))
                 .timeout(Duration.ofMillis(2000)).build();
 
-        HttpResponse response = httpClient.send(request,
-                HttpResponse.BodyHandlers.ofString());
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpResponse response = null;
+        try {
+            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        return response.body().toString();
-    }
-
-    public Map<String, Float> getGeolocationFromAddress(Address address) throws IOException, InterruptedException {
-
-        Map<String, Float> coordinates = new HashMap<String, Float>();
-
-        var response = GeocodeSync(address.getStreetName()+","+address.getNumber()+","+ address.getCity()+" "+address.getState()+", "+address.getZipCode());
-        JSONObject json = new JSONObject(response);
+        JSONObject json = new JSONObject(response.body().toString());
 
         if (json.getString("status").equals("OK")){
             JSONArray results = json.getJSONArray("results");
@@ -52,12 +71,10 @@ public class GeoCode {
 
             JSONObject location = firstResult.getJSONObject("geometry").getJSONObject("location");
 
-            coordinates.put("lat", location.getFloat("lat"));
-            coordinates.put("lng", location.getFloat("lng"));
+            address.setLatitude(location.getBigDecimal("lat"));
+            address.setLongitude(location.getBigDecimal("lng"));
         }else{
             throw new NoResultException("Error to get the lat/lng from address: "+ response);
         }
-
-        return coordinates;
     }
 }

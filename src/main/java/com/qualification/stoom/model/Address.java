@@ -1,8 +1,8 @@
 package com.qualification.stoom.model;
 
-import com.sun.istack.NotNull;
-
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "address")
@@ -11,29 +11,29 @@ public class Address {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @NotNull
+    @NotBlank
     private String streetName;
-    @NotNull
+    @NotBlank
     private String number;
     private String complement;
-    @NotNull
+    @NotBlank
     private String neighborhood;
-    @NotNull
+    @NotBlank
     private String city;
-    @NotNull
+    @NotBlank
     private String state;
-    @NotNull
+    @NotBlank
     private String country;
-    @NotNull
+    @NotBlank
     private String zipCode;
-    private Float latitude;
-    private Float longitude;
+    private BigDecimal latitude;
+    private BigDecimal longitude;
 
     public Address() {
     }
 
     public Address(Long id, String streetName, String number, String complement, String neighborhood, String city, String state, String country,
-            String zipCode, Float latitude, Float longitude) {
+            String zipCode, BigDecimal latitude, BigDecimal longitude) {
         this.id = id;
         this.streetName = streetName;
         this.number = number;
@@ -119,19 +119,19 @@ public class Address {
         this.zipCode = zipCode;
     }
 
-    public Float getLatitude() {
+    public BigDecimal getLatitude() {
         return latitude;
     }
 
-    public void setLatitude(Float latitude) {
+    public void setLatitude(BigDecimal latitude) {
         this.latitude = latitude;
     }
 
-    public Float getLongitude() {
+    public BigDecimal getLongitude() {
         return longitude;
     }
 
-    public void setLongitude(Float longitude) {
+    public void setLongitude(BigDecimal longitude) {
         this.longitude = longitude;
     }
 }

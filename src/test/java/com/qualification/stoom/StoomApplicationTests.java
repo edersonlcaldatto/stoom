@@ -18,6 +18,8 @@ class StoomApplicationTests {
     @Autowired
     private AddressRepository addressRepository;
 
+    @Autowired
+    private GeoCode geoCode;
 
     void contextLoads() {
     }
@@ -60,7 +62,6 @@ class StoomApplicationTests {
 
     @Test
     void testMap() throws IOException, InterruptedException {
-        var geo = new GeoCode();
         var addrees = new Address();
         addrees.setStreetName(" rua belo horizonte");
         addrees.setNumber("123");
@@ -72,7 +73,7 @@ class StoomApplicationTests {
         addrees.setZipCode("85505-555");
         addrees.setLatitude(null);
         addrees.setLongitude(null);
-        geo.getGeolocationFromAddress(addrees);
+        geoCode.findAndGeolocationFromAddress(addrees);
     }
 
 }
