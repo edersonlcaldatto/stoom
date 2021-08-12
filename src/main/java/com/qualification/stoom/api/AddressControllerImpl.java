@@ -2,7 +2,6 @@ package com.qualification.stoom.api;
 
 import com.qualification.stoom.dto.AddressDto;
 import com.qualification.stoom.mapper.AddressMapper;
-import com.qualification.stoom.model.Address;
 import com.qualification.stoom.service.AddressServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
